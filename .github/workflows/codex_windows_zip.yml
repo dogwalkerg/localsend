@@ -46,7 +46,9 @@ jobs:
         run: |
           $cmake = 'windows/CMakeLists.txt'
           $content = Get-Content $cmake -Raw
-          $content = $content.Replace('  "localsend_msix_helper.msix"' + "`n", '')
+          $lines = $content -split "`r?`n"
+          $content = ($lines | Where-Object { $_ -notmatch 'localsend_msix_helper\.msix' }) -join "`n"
+          if ($content -match 'localsend_msix_helper\.msix') { throw 'Failed to remove missing localsend_msix_helper.msix from CMakeLists.txt' }
           if ($content -notmatch 'runtimeobject.lib') {
             $inject = "`n`n# CI compatibility: C++/WinRT symbols used by plugins need these libraries on GitHub runners.`nif(TARGET gal_plugin)`n  target_link_libraries(gal_plugin PRIVATE runtimeobject.lib windowsapp.lib)`nendif()`ntarget_link_libraries(`${BINARY_NAME} PRIVATE runtimeobject.lib windowsapp.lib)`n"
             $content = $content -replace 'include\(flutter/generated_plugins\.cmake\)', ('include(flutter/generated_plugins.cmake)' + $inject)
