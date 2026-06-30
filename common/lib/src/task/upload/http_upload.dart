@@ -24,13 +24,14 @@ class HttpUploadService {
     required void Function(double) onSendProgress,
     required CustomCancelToken cancelToken,
   }) async {
+    final query = {
+      if (remoteSessionId != null) 'sessionId': remoteSessionId,
+      'fileId': fileId,
+      'token': token,
+    };
     await _client.postStream(
-      uri: ApiRoute.upload.target(target),
-      query: {
-        if (remoteSessionId != null) 'sessionId': remoteSessionId,
-        'fileId': fileId,
-        'token': token,
-      },
+      uri: ApiRoute.upload.target(target, query: query),
+      query: const {},
       headers: {
         'Content-Length': contentLength.toString(),
         'Content-Type': contentType,
