@@ -185,6 +185,20 @@ pub(super) fn verify_cert_from_res(
     Ok(public_key)
 }
 
+pub(super) fn verify_cert_from_res_optional(
+    response: &Response,
+    public_key: Option<String>,
+) -> anyhow::Result<Option<String>> {
+    if response.extensions().get::<reqwest::tls::TlsInfo>().is_none() {
+        return match public_key {
+            Some(_) => Err(anyhow::anyhow!("TLS info not found")),
+            None => Ok(None),
+        };
+    }
+
+    verify_cert_from_res(response, public_key).map(Some)
+}
+
 #[derive(Serialize, Deserialize)]
 struct ErrorResponse {
     message: String,

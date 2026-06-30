@@ -88,7 +88,7 @@ impl LsHttpClientV2 {
         }
 
         let public_key = match protocol {
-            ProtocolType::Https => Some(super::verify_cert_from_res(&res, None)?),
+            ProtocolType::Https => super::verify_cert_from_res_optional(&res, None)?,
             _ => None,
         };
 
@@ -154,7 +154,7 @@ impl LsHttpClientV2 {
             .await?;
 
         if protocol == ProtocolType::Https {
-            super::verify_cert_from_res(&res, public_key)?;
+            super::verify_cert_from_res_optional(&res, public_key)?;
         }
 
         let status = res.status();
@@ -230,7 +230,7 @@ impl LsHttpClientV2 {
         let res = self.client.post(&url).body(body).send().await?;
 
         if protocol == ProtocolType::Https {
-            super::verify_cert_from_res(&res, public_key)?;
+            super::verify_cert_from_res_optional(&res, public_key)?;
         }
 
         if res.status() != StatusCode::OK {

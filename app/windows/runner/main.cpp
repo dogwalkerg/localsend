@@ -37,7 +37,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   FlutterWindow window(project);
   Win32Window::Point origin(10, 10);
   Win32Window::Size size(500, 600);
-  if (!window.Create(L"内网传输工具", origin, size)) {
+  if (!window.Create(L"\u5185\u7f51\u4f20\u8f93\u5de5\u5177", origin, size)) {
     return EXIT_FAILURE;
   }
   window.SetQuitOnClose(true);

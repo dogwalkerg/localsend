@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "Tien Do Nam" "\0"
-            VALUE "FileDescription", "内网传输工具" "\0"
+            VALUE "FileDescription", "\x5185\x7f51\x4f20\x8f93\x5de5\x5177" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "localsend_app" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2022-2024 Tien Do Nam. All rights reserved." "\0"
             VALUE "OriginalFilename", "localsend_app.exe" "\0"
-            VALUE "ProductName", "内网传输工具" "\0"
+            VALUE "ProductName", "\x5185\x7f51\x4f20\x8f93\x5de5\x5177" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

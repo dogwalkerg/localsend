@@ -120,7 +120,7 @@ impl LsHttpClientV3 {
             .await?;
 
         let public_key = match protocol {
-            ProtocolType::Https => Some(super::verify_cert_from_res(&res, None)?),
+            ProtocolType::Https => super::verify_cert_from_res_optional(&res, None)?,
             _ => None,
         };
 
@@ -155,7 +155,7 @@ impl LsHttpClientV3 {
             .await?;
 
         if protocol == ProtocolType::Https {
-            super::verify_cert_from_res(&res, public_key)?;
+            super::verify_cert_from_res_optional(&res, public_key)?;
         }
 
         let status = res.status();
@@ -216,7 +216,7 @@ impl LsHttpClientV3 {
             .await?;
 
         if protocol == ProtocolType::Https {
-            super::verify_cert_from_res(&res, public_key)?;
+            super::verify_cert_from_res_optional(&res, public_key)?;
         }
 
         if res.status() != StatusCode::OK {
@@ -257,12 +257,15 @@ fn to_identifier(
     require_cert: bool,
     public_key: Option<String>,
 ) -> Result<String, ClientError> {
-    match require_cert {
-        true => Ok(super::verify_cert_from_res(response, public_key)?),
-        false => response
-            .remote_addr()
-            .map(|addr| addr.ip().to_string())
-            .ok_or_else(|| anyhow::anyhow!("Remote address not found in response"))
-            .map_err(ClientError::Other),
+    if require_cert {
+        if let Some(public_key) = super::verify_cert_from_res_optional(response, public_key)? {
+            return Ok(public_key);
+        }
     }
+
+    response
+        .remote_addr()
+        .map(|addr| addr.ip().to_string())
+        .ok_or_else(|| anyhow::anyhow!("Remote address not found in response"))
+        .map_err(ClientError::Other)
 }
