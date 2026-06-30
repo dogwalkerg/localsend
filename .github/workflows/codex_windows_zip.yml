@@ -1,0 +1,87 @@
+name: Codex Windows Zip
+
+"on":
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/codex_windows_zip.yml
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: 3.35.6
+
+jobs:
+  build_windows_zip:
+    name: Windows x64 zip
+    runs-on: windows-2022
+    steps:
+      - name: Fix long file paths
+        run: git config --system core.longpaths true
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: false
+
+      - name: Get dependencies
+        working-directory: app
+        run: flutter pub get
+
+      - name: Generate files
+        working-directory: app
+        run: dart run build_runner build -d
+
+      - name: Patch Windows CI build files
+        working-directory: app
+        shell: pwsh
+        run: |
+          $cmake = 'windows/CMakeLists.txt'
+          $content = Get-Content $cmake -Raw
+          $content = $content.Replace('  "localsend_msix_helper.msix"' + "`n", '')
+          if ($content -notmatch 'runtimeobject.lib') {
+            $inject = "`n`n# CI compatibility: C++/WinRT symbols used by plugins need these libraries on GitHub runners.`nif(TARGET gal_plugin)`n  target_link_libraries(gal_plugin PRIVATE runtimeobject.lib windowsapp.lib)`nendif()`ntarget_link_libraries(`${BINARY_NAME} PRIVATE runtimeobject.lib windowsapp.lib)`n"
+            $content = $content -replace 'include\(flutter/generated_plugins\.cmake\)', ('include(flutter/generated_plugins.cmake)' + $inject)
+          }
+          Set-Content -Path $cmake -Value $content -NoNewline
+          Get-Content $cmake
+
+      - name: Build Windows release
+        working-directory: app
+        shell: pwsh
+        run: |
+          $env:CMAKE_GENERATOR = 'Visual Studio 17 2022'
+          flutter build windows --release --verbose
+
+      - name: Create empty settings.json
+        working-directory: app
+        shell: pwsh
+        run: |
+          '{}' | Set-Content -Path build/windows/x64/runner/Release/settings.json
+
+      - name: Add VC runtime DLL files
+        working-directory: app
+        shell: pwsh
+        run: |
+          Copy-Item ../scripts/windows/x64/msvcp140.dll build/windows/x64/runner/Release/
+          Copy-Item ../scripts/windows/x64/vcruntime140.dll build/windows/x64/runner/Release/
+          Copy-Item ../scripts/windows/x64/vcruntime140_1.dll build/windows/x64/runner/Release/
+
+      - name: Zip Windows release
+        working-directory: app
+        shell: pwsh
+        run: Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath LocalSend-windows-x64.zip
+
+      - name: Upload Windows zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: localsend-windows-x64-zip
+          path: app/LocalSend-windows-x64.zip
