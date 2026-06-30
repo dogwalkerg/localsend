@@ -7,10 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:localsend_app/config/theme.dart';
 import 'package:localsend_app/gen/strings.g.dart';
-import 'package:localsend_app/model/persistence/color_mode.dart';
-import 'package:localsend_app/pages/about/about_page.dart';
 import 'package:localsend_app/pages/changelog_page.dart';
-import 'package:localsend_app/pages/donation/donation_page.dart';
 import 'package:localsend_app/pages/language_page.dart';
 import 'package:localsend_app/pages/settings/network_interfaces_page.dart';
 import 'package:localsend_app/pages/tabs/settings_tab_controller.dart';
@@ -28,12 +25,10 @@ import 'package:localsend_app/widget/dialogs/quick_save_from_favorites_notice.da
 import 'package:localsend_app/widget/dialogs/quick_save_notice.dart';
 import 'package:localsend_app/widget/dialogs/text_field_tv.dart';
 import 'package:localsend_app/widget/dialogs/text_field_with_actions.dart';
-import 'package:localsend_app/widget/labeled_checkbox.dart';
 import 'package:localsend_app/widget/local_send_logo.dart';
 import 'package:localsend_app/widget/responsive_list_view.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:routerino/routerino.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class SettingsTab extends StatelessWidget {
   const SettingsTab();
@@ -69,20 +64,6 @@ class SettingsTab extends StatelessWidget {
                             );
                           }).toList(),
                           onChanged: (theme) => vm.onChangeTheme(context, theme),
-                        ),
-                      ),
-                      _SettingsEntry(
-                        label: t.settingsTab.general.color,
-                        child: CustomDropdownButton<ColorMode>(
-                          value: vm.settings.colorMode,
-                          items: vm.colorModes.map((colorMode) {
-                            return DropdownMenuItem(
-                              value: colorMode,
-                              alignment: Alignment.center,
-                              child: Text(colorMode.humanName),
-                            );
-                          }).toList(),
-                          onChanged: vm.onChangeColorMode,
                         ),
                       ),
                       _ButtonEntry(
@@ -488,62 +469,6 @@ class SettingsTab extends StatelessWidget {
                       ),
                     ],
                   ),
-                  _SettingsSection(
-                    title: t.settingsTab.other.title,
-                    padding: const EdgeInsets.only(bottom: 0),
-                    children: [
-                      _ButtonEntry(
-                        label: t.aboutPage.title,
-                        buttonLabel: t.general.open,
-                        onTap: () async {
-                          await context.push(() => const AboutPage());
-                        },
-                      ),
-                      _ButtonEntry(
-                        label: t.settingsTab.other.support,
-                        buttonLabel: t.settingsTab.other.donate,
-                        onTap: () async {
-                          await context.push(() => const DonationPage());
-                        },
-                      ),
-                      _ButtonEntry(
-                        label: t.settingsTab.other.privacyPolicy,
-                        buttonLabel: t.general.open,
-                        onTap: () async {
-                          await launchUrl(
-                            Uri.parse('https://localsend.org/privacy'),
-                            mode: LaunchMode.externalApplication,
-                          );
-                        },
-                      ),
-                      if (checkPlatform([TargetPlatform.iOS, TargetPlatform.macOS]))
-                        _ButtonEntry(
-                          label: t.settingsTab.other.termsOfUse,
-                          buttonLabel: t.general.open,
-                          onTap: () async {
-                            await launchUrl(
-                              Uri.parse('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/'),
-                              mode: LaunchMode.externalApplication,
-                            );
-                          },
-                        ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      LabeledCheckbox(
-                        label: t.settingsTab.advancedSettings,
-                        value: vm.advanced,
-                        labelFirst: true,
-                        onChanged: (b) async {
-                          vm.onTapAdvanced(b == true);
-                          await ref.notifier(settingsProvider).setAdvancedSettingsEnabled(b == true);
-                        },
-                      ),
-                      const SizedBox(width: 10),
-                    ],
-                  ),
                   const SizedBox(height: 20),
                   const LocalSendLogo(withText: true),
                   const SizedBox(height: 5),
@@ -758,13 +683,3 @@ extension on ThemeMode {
   }
 }
 
-extension on ColorMode {
-  String get humanName {
-    return switch (this) {
-      ColorMode.system => t.settingsTab.general.colorOptions.system,
-      ColorMode.localsend => t.appName,
-      ColorMode.oled => t.settingsTab.general.colorOptions.oled,
-      ColorMode.yaru => 'Yaru',
-    };
-  }
-}
