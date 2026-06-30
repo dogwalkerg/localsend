@@ -118,6 +118,7 @@ flutter:
     - assets/img/
     - assets/web/
     - assets/CHANGELOG.md
+    - localsend.exe
 
 flutter_gen:
   line_length: 150
